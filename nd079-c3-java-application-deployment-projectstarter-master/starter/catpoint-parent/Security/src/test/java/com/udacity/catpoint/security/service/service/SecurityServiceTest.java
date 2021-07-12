@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -77,11 +78,12 @@ public class SecurityServiceTest {
     //test 3
     @Test
     public void ifAlarmArmedAndAlarmStatusPendingAndSensorNotActivated_SetToAlarmStatusNoAlarm(){
-        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
-        securityService.changeSensorActivationStatus(sensor, false);
-        sensor.setActive(Boolean.FALSE);
-        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
+        when ( securityRepository.getArmingStatus ( ) ).thenReturn ( ArmingStatus.ARMED_HOME );
+
+        sensor.setActive ( false );
+        securityService.changeSensorActivationStatus ( sensor ,false);
+        verify ( securityRepository ).setAlarmStatus ( AlarmStatus.NO_ALARM );
     }
 
     //test 4
@@ -97,10 +99,15 @@ public class SecurityServiceTest {
    // test 5
     @Test
     void ifSensorActivated_andAlreadyActive_andSystemIsInPendingState_changeToAlarmState(){
-        sensor.setActive(true);
-        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
-        securityService.changeSensorActivationStatus(sensor, true);
-        verify(securityRepository, times(1)).setAlarmStatus(any(AlarmStatus.class));
+
+        when ( securityRepository.getArmingStatus ( ) ).thenReturn ( ArmingStatus.ARMED_HOME );
+
+        when ( securityRepository.getAlarmStatus ( ) ).thenReturn ( AlarmStatus.PENDING_ALARM );
+
+        securityService.changeSensorActivationStatus ( sensor, true );
+
+
+        verify ( securityRepository ).setAlarmStatus ( AlarmStatus.ALARM );
     }
 
 
@@ -154,12 +161,11 @@ public class SecurityServiceTest {
     //test 11
     @Test
      void systemArmedHomeWhenImageServiceIdentifiesCatChangeStatusToAlarm() {
-        BufferedImage catImage = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
-        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
-        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
-        securityService.processImage(catImage);
-        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
-        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+        when ( securityRepository.getArmingStatus ( ) ).thenReturn ( ArmingStatus.ARMED_HOME );
+        when ( imageService.imageContainsCat ( any ( ), ArgumentMatchers.anyFloat ( ) )).thenReturn ( true );
+        securityService.processImage ( mock ( BufferedImage.class ) );
+
+        verify ( securityRepository, times ( 1 ) ).setAlarmStatus ( AlarmStatus.ALARM );
     }
 
     @Test
