@@ -79,11 +79,10 @@ public class SecurityServiceTest {
     @Test
     public void ifAlarmArmedAndAlarmStatusPendingAndSensorNotActivated_SetToAlarmStatusNoAlarm(){
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
-        when ( securityRepository.getArmingStatus ( ) ).thenReturn ( ArmingStatus.ARMED_HOME );
+        sensor.setActive(false);
+        securityService.changeSensorActivationStatus(sensor);
 
-        sensor.setActive ( false );
-        securityService.changeSensorActivationStatus ( sensor ,false);
-        verify ( securityRepository ).setAlarmStatus ( AlarmStatus.NO_ALARM );
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
     //test 4
@@ -185,7 +184,8 @@ public class SecurityServiceTest {
     void ifAlarmStateAndSystemDisarmed_changeStatusToPending() {
         when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
-        securityService.changeSensorActivationStatus(sensor,true);
+        securityService.changeSensorActivationStatus(sensor);
+
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.PENDING_ALARM);
     }
 }
